@@ -2,6 +2,16 @@
 
 A reverse fitness tracker built in a couple of hours for a hackathon. Instead of rewarding steps and productivity, MyChudnessPal gamifies your **Stagnation Index**—rewarding stillness, lying down, and doomscrolling while penalizing walking and studying.
 
+
+
+<p align="center">
+  <img width="120" alt="8814" src="https://github.com/user-attachments/assets/b9ef0c46-386f-4aaf-a0c7-74924a5ee4c0" />
+</p>
+<p align="center">
+  <img width="250" alt="8817" src="https://github.com/user-attachments/assets/0d9090b8-f113-44f8-bf7c-ab7c1cea253c" />
+  <img width="250" alt="8815" src="https://github.com/user-attachments/assets/38ebccc5-353e-4333-a17b-66d188172e86" />
+</p>
+
 ## Features
 
 - **Live Sensor Tracking:** Uses device accelerometer data to track time unmoved, count steps (`-8 pts`), and detect lying-down "bedrot" posture (`10x` rate).
