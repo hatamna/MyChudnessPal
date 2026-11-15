@@ -1,5 +1,7 @@
 # MyChudnessPal
 
+Try it: shimmering-stroopwafel-75e468.netlify.app
+
 A reverse fitness tracker built in a couple of hours for a hackathon. Instead of rewarding steps and productivity, MyChudnessPal gamifies your **Stagnation Index**—rewarding stillness, lying down, and doomscrolling while penalizing walking and studying.
 
 
