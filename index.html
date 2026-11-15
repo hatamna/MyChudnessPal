@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#EFEFEF" />
+  <title>MyChudnessPal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #EFEFEF;
+      --glass: rgba(255, 255, 255, 0.64);
+      --glass-strong: rgba(255, 255, 255, 0.84);
+      --glass-tinted: rgba(232, 232, 235, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.92);
+      --outline: rgba(17, 17, 17, 0.10);
+      --ink: #111111;
+      --ink-soft: #222222;
+      --muted: #666666;
+      --warn-red: #DC2626;
+      --tint-light: rgba(17, 17, 17, 0.06);
+      --tint-mid: rgba(17, 17, 17, 0.12);
+      --font-main: 'Doto', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+      font: 100%/1.45 var(--font-main);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: var(--font-main);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--ink);
+      /*clear host banners and mobile home bar*/
+      padding: max(12px, env(safe-area-inset-top)) 16px calc(155px + env(safe-area-inset-bottom));
+      max-width: 460px;
+      margin-inline: auto;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /*liquid glass surface with specular top rim*/
+    .liquid-glass {
+      background-color: var(--glass);
+      backdrop-filter: blur(26px) saturate(160%);
+      -webkit-backdrop-filter: blur(26px) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.96),
+        0 10px 28px rgba(17, 17, 17, 0.06),
+        0 1px 2px rgba(17, 17, 17, 0.05);
+      border-radius: 28px;
+    }
+
+    /*high-contrast black bento card*/
+    .dark-card {
+      background-color: var(--ink);
+      color: #FFFFFF;
+      border-radius: 26px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 12px 26px rgba(17, 17, 17, 0.16);
+    }
+
+    /*tactile press feedback on pointer down*/
+    button, .tappable {
+      cursor: pointer;
+      user-select: none;
+      transition: transform 95ms ease-out, opacity 95ms ease-out, background-color 140ms ease;
+    }
+    button:active, .tappable:active {
+      transform: scale(0.96);
+    }
+
+    header {
+      position: sticky;
+      top: 10px;
+      z-index: 40;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px 7px 16px;
+      margin-bottom: 14px;
+      border-radius: 999px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background-color: #B4B4B4;
+    }
+    .sync-dot.online {
+      background-color: var(--ink);
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.14);
+    }
+
+    .brand-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .glass-pill-btn {
+      background-color: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      box-shadow: inset 0 1px 0 #FFFFFF, 0 2px 8px rgba(17, 17, 17, 0.05);
+      color: var(--ink);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      background-color: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      box-shadow: inset 0 1px 0 #FFFFFF, 0 2px 8px rgba(17, 17, 17, 0.05);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      padding: 0;
+    }
+
+    /*compact greeting row with inline micro stillness pill*/
+    .welcome-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 2px 4px 12px;
+    }
+    .welcome-sub {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 1px;
+    }
+    .welcome-name {
+      font-family: var(--font-sans);
+      font-size: clamp(1.55rem, 5.6vw, 1.95rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    /*ultra-compact inline stillness status chip*/
+    .sensor-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      background-color: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      color: var(--ink);
+      box-shadow: inset 0 1px 0 #FFFFFF, 0 2px 8px rgba(17, 17, 17, 0.05);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .sensor-chip.still {
+      background-color: var(--ink);
+      border-color: var(--ink);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(17, 17, 17, 0.16);
+    }
+    .sensor-chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background-color: currentColor;
+    }
+
+    /*screen time violation warning banner*/
+    .warning-banner {
+      background-color: var(--ink);
+      color: #FFFFFF;
+      border: 2px solid #FFFFFF;
+      border-radius: 22px;
+      padding: 13px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 12px 26px rgba(17, 17, 17, 0.22);
+    }
+    /*red alert state during school/work hours*/
+    .warning-banner.work-alert {
+      background-color: var(--warn-red);
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 14px 30px rgba(220, 38, 38, 0.34);
+    }
+    .warning-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .warning-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background-color: #FFFFFF;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .warning-banner.work-alert .warning-icon,
+    .warning-banner.work-alert .warning-mult {
+      background-color: #FFFFFF;
+      color: var(--warn-red);
+    }
+    .warning-title {
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+    }
+    .warning-sub {
+      font-size: 0.68rem;
+      font-weight: 700;
+      opacity: 0.88;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .warning-mult {
+      background-color: #FFFFFF;
+      color: var(--ink);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 900;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /*main score card*/
+    .score-card {
+      padding: 22px;
+      margin-bottom: 12px;
+    }
+    .score-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tier-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tier-pill {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background-color: var(--tint-light);
+      border: 1px solid var(--outline);
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+    .mult-pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      background-color: var(--ink);
+      color: #FFFFFF;
+      letter-spacing: 0.03em;
+    }
+    .mult-pill.work-mult {
+      background-color: var(--warn-red);
+      color: #FFFFFF;
+    }
+    .mult-pill.paused-mult {
+      background-color: var(--tint-mid);
+      color: var(--ink);
+    }
+    .streak-caption {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .score-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+    }
+    .score-value {
+      display: inline-block;
+      transform-origin: left center;
+      will-change: transform;
+      font-size: clamp(2.8rem, 11vw, 3.6rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 0.98;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-caption {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /*charcoal capsule button*/
+    .dark-pill-btn {
+      background-color: var(--ink);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 8px 18px rgba(17, 17, 17, 0.18);
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /*2-column asymmetric bento metrics*/
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .bento-title {
+      font-size: 0.94rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 0 0 4px;
+    }
+    .bento-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
+      opacity: 0.65;
+      margin: 0 0 18px;
+    }
+    .bento-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+    .bento-stat-pill {
+      display: inline-block;
+      will-change: transform;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      background-color: rgba(255, 255, 255, 0.16);
+      color: #FFFFFF;
+    }
+    .dot-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background-color: rgba(255, 255, 255, 0.14);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /*school/work and sleep schedule card*/
+    .schedule-card {
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .schedule-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .schedule-title {
+      font-size: 0.94rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .schedule-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sched-chip {
+      background-color: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .sched-chip.active-window {
+      background-color: var(--ink);
+      border-color: var(--ink);
+      color: #FFFFFF;
+    }
+    .sched-chip.active-work-window {
+      background-color: var(--warn-red);
+      border-color: var(--warn-red);
+      color: #FFFFFF;
+    }
+
+    /*app portal launcher grid*/
+    .portal-card {
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .portal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .portal-title {
+      font-size: 0.94rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .portal-net {
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: var(--tint-light);
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .app-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--glass-border);
+      background-color: var(--glass-strong);
+      color: var(--ink);
+      text-align: left;
+      box-shadow: inset 0 1px 0 #FFFFFF, 0 3px 10px rgba(17, 17, 17, 0.04);
+    }
+    .app-btn.rot-app {
+      background-color: var(--ink);
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 14px rgba(17, 17, 17, 0.14);
+    }
+    .app-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+    .app-name {
+      font-size: 0.82rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .app-delta {
+      font-size: 0.68rem;
+      font-weight: 700;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    /*sleep and rot horizontal card*/
+    .rot-card {
+      background-color: var(--glass-tinted);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: inset 0 1px 0 #FFFFFF, 0 8px 20px rgba(17, 17, 17, 0.05);
+    }
+    .rot-title {
+      font-size: 0.94rem;
+      font-weight: 800;
+      margin: 0 0 6px;
+    }
+    .rot-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .white-chip {
+      background-color: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--outline);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /*stage controls accordion pinned at bottom*/
+    details.liquid-glass {
+      padding: 14px 18px;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      border-radius: 22px;
+    }
+    summary {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    summary::-webkit-details-marker { display: none; }
+
+    .sim-wrap {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--outline);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .sim-chip {
+      background-color: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      color: var(--ink);
+      padding: 9px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(17, 17, 17, 0.05);
+    }
+    .sim-chip.active-sim {
+      background-color: var(--ink);
+      color: #FFFFFF;
+      border-color: var(--ink);
+    }
+
+    /*leaderboard section*/
+    .section-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+      margin-bottom: 10px;
+    }
+    .section-heading {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .section-meta {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .leader-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      border-radius: 24px;
+    }
+    .leader-row.me {
+      background-color: var(--glass-strong);
+      border-color: var(--ink);
+    }
+
+    .rank-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background-color: var(--tint-light);
+      color: var(--ink);
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .leader-row.first .rank-circle {
+      background-color: var(--ink);
+      color: #FFFFFF;
+    }
+
+    .leader-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .leader-name-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+    .leader-username {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .mini-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background-color: var(--ink);
+      color: #FFFFFF;
+    }
+    .mini-tag.you {
+      background-color: var(--tint-mid);
+      color: var(--ink);
+    }
+    .leader-sub {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .leader-pts {
+      font-size: 1.18rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    /*island shake warning when bedrotting during school/work hours*/
+    @keyframes island-warn-shake {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      14% { transform: translate3d(-4px, -1px, 0) rotate(-0.85deg); }
+      28% { transform: translate3d(4px, 1px, 0) rotate(0.85deg); }
+      42% { transform: translate3d(-3.5px, 1px, 0) rotate(-0.65deg); }
+      56% { transform: translate3d(3.5px, -1px, 0) rotate(0.65deg); }
+      70% { transform: translate3d(-2px, 0, 0) rotate(-0.35deg); }
+      84% { transform: translate3d(2px, 0, 0) rotate(0.35deg); }
+    }
+
+    body.bedrot-school-shake header,
+    body.bedrot-school-shake .welcome-row,
+    body.bedrot-school-shake .warning-banner,
+    body.bedrot-school-shake .score-card,
+    body.bedrot-school-shake .bento-grid .dark-card,
+    body.bedrot-school-shake .schedule-card,
+    body.bedrot-school-shake .portal-card,
+    body.bedrot-school-shake .rot-card,
+    body.bedrot-school-shake .section-bar,
+    body.bedrot-school-shake .leader-row,
+    body.bedrot-school-shake details.liquid-glass {
+      will-change: transform;
+      animation: island-warn-shake 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+    }
+
+    body.bedrot-school-shake .bento-grid .dark-card:nth-child(2),
+    body.bedrot-school-shake .portal-card,
+    body.bedrot-school-shake .leader-row:nth-child(even) {
+      animation-delay: -0.14s;
+      animation-duration: 0.34s;
+    }
+
+    body.bedrot-school-shake .score-card,
+    body.bedrot-school-shake .rot-card,
+    body.bedrot-school-shake details.liquid-glass {
+      animation-delay: -0.24s;
+      animation-duration: 0.38s;
+    }
+
+    /*frosted modal sheets*/
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(17, 17, 17, 0.28);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 9000;
+    }
+    .modal {
+      width: 100%;
+      max-width: 350px;
+      padding: 24px;
+      background-color: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
+      border: 1px solid #FFFFFF;
+      border-radius: 30px;
+      box-shadow: 0 24px 48px rgba(17, 17, 17, 0.16);
+    }
+    .modal h2 {
+      margin: 0 0 6px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .modal p {
+      margin: 0 0 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .sched-block {
+      background-color: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--outline);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .sched-block-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+    .time-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .time-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .time-input {
+      width: 100%;
+      background-color: #FFFFFF;
+      border: 1px solid var(--outline);
+      color: var(--ink);
+      padding: 9px 10px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      outline: none;
+    }
+
+    .input-field {
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--outline);
+      color: var(--ink);
+      padding: 13px 15px;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      outline: none;
+    }
+    #authUser {
+      font-family: var(--font-sans);
+    }
+    .input-field:focus, .time-input:focus {
+      border-color: var(--ink);
+    }
+
+    .btn-full-dark {
+      width: 100%;
+      background-color: var(--ink);
+      color: #FFFFFF;
+      border: none;
+      padding: 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 18px rgba(17, 17, 17, 0.16);
+    }
+    .btn-full-ghost {
+      width: 100%;
+      background-color: transparent;
+      color: var(--muted);
+      border: 1px solid var(--outline);
+      padding: 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.84rem;
+      margin-top: 8px;
+    }
+
+    .error-msg {
+      color: var(--ink);
+      background-color: var(--tint-mid);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      /*sits above bottom host banners*/
+      bottom: calc(96px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--ink);
+      color: #FFFFFF;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      z-index: 9500;
+      display: none;
+      box-shadow: 0 10px 24px rgba(17, 17, 17, 0.2);
+      white-space: nowrap;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, button, .tappable {
+        transition: opacity 150ms ease !important;
+        transform: none !important;
+        animation: none !important;
+      }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      .liquid-glass, .rot-card, .modal { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: #FFFFFF !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!--account sign in and creation modal-->
+  <div id="authModal" class="overlay hidden">
+    <div class="modal">
+      <h2>Account Access</h2>
+      <p>Sign in or create an account. Your progress, schedule, and room sync permanently.</p>
+      <div id="authError" class="error-msg"></div>
+      <input type="text" id="authUser" class="input-field" placeholder="Username" autocomplete="username" />
+      <input type="password" id="authPass" class="input-field" placeholder="Password" autocomplete="current-password" />
+      <input type="text" id="authRoom" class="input-field" placeholder="4-Digit Room Code (optional, e.g. 1111)" inputmode="numeric" maxlength="6" />
+      <button class="btn-full-dark" id="authSubmitBtn" onclick="submitAuth()">Continue</button>
+    </div>
+  </div>
+
+  <!--room code modal-->
+  <div id="roomModal" class="overlay hidden">
+    <div class="modal">
+      <h2>Leaderboard Room</h2>
+      <p>Enter a 4-digit room code to share a persistent leaderboard with friends.</p>
+      <input type="text" id="roomInput" class="input-field" placeholder="4-Digit Code (e.g. 1111)" inputmode="numeric" maxlength="6" />
+      <button class="btn-full-dark" onclick="saveRoom()">Connect Room</button>
+      <button class="btn-full-ghost" onclick="closeRoomModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!--school/work and sleep schedule modal-->
+  <div id="scheduleModal" class="overlay hidden">
+    <div class="modal">
+      <h2>Protected Hours</h2>
+      <p>Screen time during school, work, or sleep triggers a warning and a 10x points multiplier.</p>
+
+      <div class="sched-block">
+        <div class="sched-block-head">
+          <span>School / Work Hours</span>
+          <input type="checkbox" id="workEnabledInput" checked />
+        </div>
+        <div class="time-row">
+          <div>
+            <div class="time-label">Start</div>
+            <input type="time" id="workStartInput" class="time-input" value="09:00" />
+          </div>
+          <div>
+            <div class="time-label">End</div>
+            <input type="time" id="workEndInput" class="time-input" value="17:00" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sched-block">
+        <div class="sched-block-head">
+          <span>Sleep Hours</span>
+          <input type="checkbox" id="sleepEnabledInput" checked />
+        </div>
+        <div class="time-row">
+          <div>
+            <div class="time-label">Bedtime</div>
+            <input type="time" id="sleepStartInput" class="time-input" value="23:00" />
+          </div>
+          <div>
+            <div class="time-label">Wake Up</div>
+            <input type="time" id="sleepEndInput" class="time-input" value="07:00" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-full-dark" onclick="saveSchedule()">Save Hours</button>
+      <button class="btn-full-ghost" onclick="closeScheduleModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!--floating frosted glass bar-->
+  <header class="liquid-glass">
+    <div class="brand-group">
+      <span class="sync-dot" id="syncDot" title="Sync Status"></span>
+      <span class="brand-title">MyChudnessPal</span>
+    </div>
+    <div class="header-controls">
+      <button class="glass-pill-btn" id="roomPillBtn" onclick="openRoomModal()">Room: Solo</button>
+      <button class="icon-circle" onclick="openAccountSwitch()" aria-label="Switch Account">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!--greeting row with compact inline stillness badge-->
+  <div class="welcome-row">
+    <div>
+      <div class="welcome-sub">Welcome back</div>
+      <h1 class="welcome-name" id="welcomeName">Guest</h1>
+    </div>
+    <button class="sensor-chip still" id="motionChip" onclick="requestSensorPermission()">
+      <span class="sensor-chip-dot"></span>
+      <span id="motionText">Still +10/2s</span>
+    </button>
+  </div>
+
+  <!--screen time warning banner during school/work or sleep hours-->
+  <div class="warning-banner hidden" id="warningBanner">
+    <div class="warning-left">
+      <div class="warning-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <div>
+        <div class="warning-title" id="warningTitle">SCREEN TIME WARNING</div>
+        <div class="warning-sub" id="warningSub">Active during protected hours</div>
+      </div>
+    </div>
+    <span class="warning-mult" id="warningMultTag">10X RATE</span>
+  </div>
+
+  <!--primary score surface-->
+  <section class="score-card liquid-glass">
+    <div class="score-card-top">
+      <div class="tier-group">
+        <span class="tier-pill" id="rankTitle">Certified Chud</span>
+        <span class="mult-pill hidden" id="multBadge">10X ACTIVE</span>
+      </div>
+      <span class="streak-caption" id="statStreak">Streak 00m 00s</span>
+    </div>
+    <div class="score-bottom">
+      <div>
+        <div class="score-value" id="heroScore">500</div>
+        <div class="score-caption">Total Stagnation Index</div>
+      </div>
+      <button class="dark-pill-btn" onclick="openRoomModal()">
+        <span id="roomCtaLabel">Join Room</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!--2-column bento metrics-->
+  <section class="bento-grid">
+    <div class="dark-card">
+      <div>
+        <h2 class="bento-title">Time<br />Unmoved</h2>
+        <p class="bento-sub" id="unmovedSub">Live stillness counter</p>
+      </div>
+      <div class="bento-bottom">
+        <span class="bento-stat-pill" id="statUnmoved">00m 00s</span>
+        <span class="dot-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="dark-card">
+      <div>
+        <h2 class="bento-title">Steps<br />Taken</h2>
+        <p class="bento-sub">Fewer ranks higher</p>
+      </div>
+      <div class="bento-bottom">
+        <span class="bento-stat-pill" id="statSteps">0</span>
+        <span class="dot-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!--school/work and sleep hours schedule card-->
+  <section class="schedule-card liquid-glass">
+    <div class="schedule-top">
+      <h2 class="schedule-title">Protected Hours</h2>
+      <button class="glass-pill-btn" onclick="openScheduleModal()">Edit Hours</button>
+    </div>
+    <div class="schedule-pills">
+      <span class="sched-chip" id="workWindowChip">Work 09:00-17:00</span>
+      <span class="sched-chip" id="sleepWindowChip">Sleep 23:00-07:00</span>
+      <span class="sched-chip" id="restrictedScreenChip">Screen 00m 00s</span>
+    </div>
+  </section>
+
+  <!--app portal launcher and tracker-->
+  <section class="portal-card liquid-glass">
+    <div class="portal-header">
+      <h2 class="portal-title">App Activity Tracker</h2>
+      <span class="portal-net" id="statAppPts">0 app pts</span>
+    </div>
+    <div class="app-grid">
+      <button class="app-btn rot-app" onclick="launchTrackedApp('youtube')">
+        <div class="app-btn-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <div>
+            <div class="app-name">YouTube</div>
+            <div class="app-delta" id="ytDelta">+150 • +12/s</div>
+          </div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
+      </button>
+
+      <button class="app-btn rot-app" onclick="launchTrackedApp('instagram')">
+        <div class="app-btn-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <circle cx="12" cy="12" r="4"></circle>
+          </svg>
+          <div>
+            <div class="app-name">Instagram</div>
+            <div class="app-delta" id="igDelta">+150 • +12/s</div>
+          </div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
+      </button>
+
+      <button class="app-btn" onclick="launchTrackedApp('pulse')">
+        <div class="app-btn-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <div>
+            <div class="app-name">Pulse</div>
+            <div class="app-delta" id="pulseDelta">-200 • -15/s</div>
+          </div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
+      </button>
+
+      <button class="app-btn" onclick="launchTrackedApp('classroom')">
+        <div class="app-btn-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+          <div>
+            <div class="app-name">Classroom</div>
+            <div class="app-delta" id="classDelta">-200 • -15/s</div>
+          </div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!--sleep and rot horizontal card-->
+  <section class="rot-card">
+    <div>
+      <h2 class="rot-title">Offline Rot &amp; Last App</h2>
+      <div class="rot-tags">
+        <span class="white-chip" id="statSleep">0.0 hrs</span>
+        <span class="white-chip" id="statLastApp">No app logged</span>
+      </div>
+    </div>
+    <button class="icon-circle" onclick="forceSyncRoom()" title="Sync Leaderboard">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+    </button>
+  </section>
+
+  <!--room leaderboard-->
+  <div class="section-bar">
+    <h2 class="section-heading" id="boardHeading">Leaderboard</h2>
+    <span class="section-meta" id="memberCount">1 Member</span>
+  </div>
+  <div id="board"></div>
+
+  <!--stage test controls at very bottom-->
+  <details class="liquid-glass">
+    <summary>
+      <span>Stage Calibration &amp; Manual Adjustments</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </summary>
+    <div class="sim-wrap">
+      <button class="sim-chip" id="forceMultBtn" onclick="toggleDemoSchedule()">Work 10x</button>
+      <button class="sim-chip" id="forceBedrotBtn" onclick="toggleDemoBedrot()">Bedrot Pose</button>
+      <button class="sim-chip" onclick="adjustStat('steps', 10)">+10 Steps</button>
+      <button class="sim-chip" onclick="logAppEvent('youtube', 0, false)">Log YT</button>
+      <button class="sim-chip" onclick="logAppEvent('pulse', 0, false)">Log Pulse</button>
+      <button class="sim-chip" onclick="resetMyStats()">Reset</button>
+    </div>
+  </details>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    //register service worker for standalone install
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    //persistent storage keys
+    const DB_KEY = 'mcp_v5_store';
+    const TOPIC_PREFIX = 'mcp_v5_prod_8812';
+
+    const DEFAULT_SCHEDULE = {
+      workEnabled: true,
+      workStart: '09:00',
+      workEnd: '17:00',
+      sleepEnabled: true,
+      sleepStart: '23:00',
+      sleepEnd: '07:00'
+    };
+
+    //app intent links and point rules
+    const APP_RULES = {
+      youtube: {
+        label: 'YouTube',
+        openPts: 150,
+        perSecPts: 12,
+        intent: 'intent://www.youtube.com/#Intent;package=com.google.android.youtube;scheme=https;S.browser_fallback_url=https%3A%2F%2Fm.youtube.com;end'
+      },
+      instagram: {
+        label: 'Instagram',
+        openPts: 150,
+        perSecPts: 12,
+        intent: 'intent://www.instagram.com/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url=https%3A%2F%2Fwww.instagram.com;end'
+      },
+      pulse: {
+        label: 'Pulse',
+        openPts: -200,
+        perSecPts: -15,
+        intent: 'intent://apps.brightspace.com/pulse/launch#Intent;package=com.d2l.brightspace.student;scheme=https;S.browser_fallback_url=https%3A%2F%2Fapps.brightspace.com%2Fpulse%2Flaunch;end'
+      },
+      classroom: {
+        label: 'Classroom',
+        openPts: -200,
+        perSecPts: -15,
+        intent: 'intent://classroom.google.com/#Intent;package=com.google.android.apps.classroom;scheme=https;S.browser_fallback_url=https%3A%2F%2Fclassroom.google.com;end'
+      }
+    };
+
+    //load saved accounts and rooms
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(DB_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return { currentUser: null, accounts: {}, rooms: {} };
+    }
+
+    function saveStore() {
+      try {
+        localStorage.setItem(DB_KEY, JSON.stringify(store));
+      } catch (_) {}
+    }
+
+    let store = loadStore();
+
+    //sensor and sync state
+    let isStill = true;
+    let sensorBedrotAngle = false;
+    let demoForceSchedule = false;
+    let demoForceBedrot = false;
+    let wasWarningActive = false;
+    let currentStreakSec = 0;
+    let grav = { x: 0, y: 0, z: 9.81, init: false };
+    let lastStepMs = 0;
+    let sensorEventsSeen = 0;
+    let clients = [];
+    let subscribedRoom = null;
+    let prevScoreText = null;
+    let prevUnmovedText = null;
+    let prevStepsText = null;
+
+    //true only briefly after a step so multipliers pause while walking
+    function isSteppingNow() {
+      return lastStepMs > 0 && (Date.now() - lastStepMs) < 2200;
+    }
+
+    //interruptible counter shake when displayed value changes
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function shakeCounter(el, intensity = 1) {
+      if (!el || reducedMotionQuery.matches || typeof el.animate !== 'function') return;
+      const dx = 5 * intensity;
+      const rot = 2.2 * intensity;
+      const peakScale = 1 + 0.055 * intensity;
+      el.animate([
+        { transform: 'translate3d(0, 0, 0) scale(1) rotate(0deg)' },
+        { transform: `translate3d(${-dx}px, -1px, 0) scale(${peakScale}) rotate(${-rot}deg)` },
+        { transform: `translate3d(${dx}px, 1px, 0) scale(${peakScale}) rotate(${rot}deg)` },
+        { transform: `translate3d(${-dx * 0.7}px, 0, 0) scale(1.02) rotate(${-rot * 0.7}deg)` },
+        { transform: `translate3d(${dx * 0.5}px, 0, 0) scale(1.01) rotate(${rot * 0.5}deg)` },
+        { transform: 'translate3d(0, 0, 0) scale(1) rotate(0deg)' }
+      ], {
+        duration: 300,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+      });
+    }
+
+    function norm(str) {
+      return (str || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    }
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = 'none'; }, 2400);
+    }
+
+    //format seconds into 00m 00s
+    function fmtMinSec(totalSec) {
+      const s = Math.max(0, Math.floor(totalSec || 0));
+      const m = Math.floor(s / 60);
+      const rem = s % 60;
+      return `${String(m).padStart(2, '0')}m ${String(rem).padStart(2, '0')}s`;
+    }
+
+    function parseTimeMins(hhmm) {
+      if (!hhmm || !hhmm.includes(':')) return -1;
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    //handle both same-day and overnight windows
+    function isNowInRange(startStr, endStr) {
+      const start = parseTimeMins(startStr);
+      const end = parseTimeMins(endStr);
+      if (start < 0 || end < 0 || start === end) return false;
+      const now = new Date();
+      const cur = now.getHours() * 60 + now.getMinutes();
+      return start < end ? (cur >= start && cur < end) : (cur >= start || cur < end);
+    }
+
+    //evaluate active school/work or sleep screen-time violation
+    function getScheduleStatus(me) {
+      const sched = { ...DEFAULT_SCHEDULE, ...(me?.schedule || {}) };
+      const inWork = (sched.workEnabled && isNowInRange(sched.workStart, sched.workEnd)) || demoForceSchedule;
+      const inSleep = sched.sleepEnabled && isNowInRange(sched.sleepStart, sched.sleepEnd);
+      const active = inWork || inSleep;
+
+      let reason = '';
+      if (inWork && inSleep) reason = 'SCHOOL/WORK & SLEEP HOURS';
+      else if (inWork) reason = demoForceSchedule ? 'SCHOOL/WORK HOURS (DEMO)' : `SCHOOL/WORK HOURS (${sched.workStart}-${sched.workEnd})`;
+      else if (inSleep) reason = `SLEEP HOURS (${sched.sleepStart}-${sched.sleepEnd})`;
+
+      return { active, inWork, inSleep, reason, sched };
+    }
+
+    function isBedrotActive() {
+      return sensorBedrotAngle || demoForceBedrot;
+    }
+
+    //compute total score including unmoved time, bedrot, 10x schedule bonus, steps, sleep, and apps
+    function calcScore(p) {
+      const steps = Number(p.steps || 0);
+      const unmovedSec = Number(p.unmovedSec || 0);
+      const bedrotPts = Number(p.bedrotPts || 0);
+      const schedulePts = Number(p.schedulePts || 0);
+      const sleepHours = Number(p.sleepHours || 0);
+      const appPts = Number(p.appPts || 0);
+      const basePts = 500;
+      const stillBonus = unmovedSec * 5;
+      const sleepBonus = sleepHours * 120;
+      const stepPenalty = steps * 8;
+      return Math.max(0, Math.round(basePts + stillBonus + bedrotPts + schedulePts + sleepBonus + appPts - stepPenalty));
+    }
+
+    function getRankTitle(score) {
+      if (score >= 2500) return 'Apex Basement Dweller';
+      if (score >= 1200) return 'Certified Chud';
+      if (score >= 750) return 'Bedrot Specialist';
+      if (score >= 400) return 'Couch Resident';
+      return 'Grass Toucher';
+    }
+
+    function getMe() {
+      if (!store.currentUser) return null;
+      return store.accounts[store.currentUser] || null;
+    }
+
+    //apply app launch or return duration points with multiplier paused while stepping
+    window.logAppEvent = function(appKey, durationSec = 0, shouldLaunch = false) {
+      const rule = APP_RULES[norm(appKey)];
+      const me = getMe();
+      if (!rule || !me) return;
+
+      const mult = (getScheduleStatus(me).active && !isSteppingNow()) ? 10 : 1;
+      const delta = (rule.openPts + Math.round(durationSec * rule.perSecPts)) * mult;
+      const sign = delta >= 0 ? '+' : '';
+      me.appPts = Number(me.appPts || 0) + delta;
+      me.lastApp = `${rule.label} (${sign}${delta}${mult > 1 ? ' 10x' : ''})`;
+
+      if (shouldLaunch) {
+        localStorage.setItem('mcp_active_app', JSON.stringify({
+          key: norm(appKey),
+          ts: Date.now()
+        }));
+      }
+
+      publishMyState(me);
+      render();
+      toast(`${rule.label}: ${sign}${delta} pts${mult > 1 ? ' (10x)' : ''}`);
+
+      if (shouldLaunch) {
+        setTimeout(() => {
+          window.location.href = rule.intent;
+        }, 120);
+      }
+    };
+
+    window.launchTrackedApp = function(appKey) {
+      logAppEvent(appKey, 0, true);
+    };
+
+    //process query trigger
+    function processUrlAppTrigger() {
+      const params = new URLSearchParams(window.location.search);
+      const appParam = norm(params.get('app'));
+      if (appParam && APP_RULES[appParam] && getMe()) {
+        logAppEvent(appParam, 0, false);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+
+    //listen for silent background app launches pushed from android
+    const seenBgEvents = new Set(JSON.parse(localStorage.getItem('mcp_seen_bg') || '[]'));
+
+    function handleBgAppMessage(rawJson) {
+      try {
+        const pkt = JSON.parse(rawJson);
+        if (pkt.event !== 'message' || !pkt.id || seenBgEvents.has(pkt.id)) return;
+        seenBgEvents.add(pkt.id);
+        localStorage.setItem('mcp_seen_bg', JSON.stringify([...seenBgEvents].slice(-100)));
+
+        const appKey = norm(pkt.message);
+        if (APP_RULES[appKey]) {
+          logAppEvent(appKey, 0, false);
+        }
+      } catch (_) {}
+    }
+
+    function initBackgroundAppBridge() {
+      const me = getMe();
+      if (!me) return;
+      const bgTopic = `mcp_bg_${norm(me.username)}`;
+
+      const es = new EventSource(`https://ntfy.sh/${bgTopic}/sse`);
+      es.onmessage = (e) => handleBgAppMessage(e.data);
+
+      const pollMissed = () => {
+        fetch(`https://ntfy.sh/${bgTopic}/json?poll=1&since=10m`)
+          .then(r => r.text())
+          .then(txt => txt.trim().split('\n').forEach(handleBgAppMessage))
+          .catch(() => {});
+      };
+
+      pollMissed();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') pollMissed();
+      });
+    }
+
+    //connect redundant websocket brokers for retained sync
+    function initCloudSync() {
+      if (typeof mqtt === 'undefined') return;
+      const urls = [
+        'wss://broker.emqx.io:8084/mqtt',
+        'wss://broker.hivemq.com:8884/mqtt'
+      ];
+
+      urls.forEach((url) => {
+        try {
+          const c = mqtt.connect(url, {
+            keepalive: 30,
+            reconnectPeriod: 3000,
+            connectTimeout: 8000
+          });
+
+          c.on('connect', () => {
+            updateSyncIndicator();
+            const me = getMe();
+            if (me) {
+              c.subscribe(`${TOPIC_PREFIX}/accounts/${norm(me.username)}`, { qos: 1 });
+              if (me.room) {
+                c.subscribe(`${TOPIC_PREFIX}/rooms/${norm(me.room)}/+`, { qos: 1 });
+              }
+              publishMyState(me);
+            }
+          });
+
+          c.on('close', updateSyncIndicator);
+          c.on('error', updateSyncIndicator);
+
+          c.on('message', (topic, payload) => {
+            try {
+              const data = JSON.parse(payload.toString());
+              handleIncomingCloudData(topic, data);
+            } catch (_) {}
+          });
+
+          clients.push(c);
+        } catch (_) {}
+      });
+    }
+
+    function updateSyncIndicator() {
+      const online = clients.some(c => c.connected);
+      const dot = document.getElementById('syncDot');
+      dot.className = online ? 'sync-dot online' : 'sync-dot';
+    }
+
+    //merge retained cloud records into local store
+    function handleIncomingCloudData(topic, data) {
+      if (!data || !data.username) return;
+      const uKey = norm(data.username);
+
+      if (topic.includes('/accounts/')) {
+        const localAcc = store.accounts[uKey];
+        if (!localAcc || (data.updatedAt || 0) > (localAcc.updatedAt || 0)) {
+          store.accounts[uKey] = {
+            username: data.username,
+            pass: data.pass,
+            steps: Number(data.steps || 0),
+            unmovedSec: Number(data.unmovedSec || 0),
+            bedrotPts: Number(data.bedrotPts || 0),
+            schedulePts: Number(data.schedulePts || 0),
+            restrictedScreenSec: Number(data.restrictedScreenSec || 0),
+            sleepHours: Number(data.sleepHours || 0),
+            appPts: Number(data.appPts || 0),
+            lastApp: data.lastApp || localAcc?.lastApp || '',
+            schedule: data.schedule || localAcc?.schedule || { ...DEFAULT_SCHEDULE },
+            room: data.room || localAcc?.room || '',
+            updatedAt: data.updatedAt || Date.now()
+          };
+          saveStore();
+          render();
+        }
+      }
+
+      if (topic.includes('/rooms/')) {
+        const parts = topic.split('/');
+        const rCode = parts[parts.indexOf('rooms') + 1];
+        if (!rCode) return;
+        store.rooms[rCode] = store.rooms[rCode] || {};
+        const prev = store.rooms[rCode][uKey];
+        if (!prev || (data.updatedAt || 0) >= (prev.updatedAt || 0)) {
+          store.rooms[rCode][uKey] = {
+            username: data.username,
+            steps: Number(data.steps || 0),
+            unmovedSec: Number(data.unmovedSec || 0),
+            bedrotPts: Number(data.bedrotPts || 0),
+            schedulePts: Number(data.schedulePts || 0),
+            sleepHours: Number(data.sleepHours || 0),
+            appPts: Number(data.appPts || 0),
+            lastApp: data.lastApp || '',
+            updatedAt: data.updatedAt || Date.now()
+          };
+          saveStore();
+          render();
+        }
+      }
+    }
+
+    //publish retained account and room packets
+    function publishMyState(me) {
+      if (!me) return;
+      const uKey = norm(me.username);
+      me.updatedAt = Date.now();
+
+      if (me.room) {
+        const rKey = norm(me.room);
+        store.rooms[rKey] = store.rooms[rKey] || {};
+        store.rooms[rKey][uKey] = {
+          username: me.username,
+          steps: me.steps,
+          unmovedSec: me.unmovedSec,
+          bedrotPts: Number(me.bedrotPts || 0),
+          schedulePts: Number(me.schedulePts || 0),
+          sleepHours: me.sleepHours,
+          appPts: Number(me.appPts || 0),
+          lastApp: me.lastApp || '',
+          updatedAt: me.updatedAt
+        };
+      }
+      saveStore();
+
+      const accPayload = JSON.stringify(me);
+      const roomPayload = JSON.stringify({
+        username: me.username,
+        steps: me.steps,
+        unmovedSec: me.unmovedSec,
+        bedrotPts: Number(me.bedrotPts || 0),
+        schedulePts: Number(me.schedulePts || 0),
+        sleepHours: me.sleepHours,
+        appPts: Number(me.appPts || 0),
+        lastApp: me.lastApp || '',
+        updatedAt: me.updatedAt
+      });
+
+      clients.forEach((c) => {
+        if (!c.connected) return;
+        c.publish(`${TOPIC_PREFIX}/accounts/${uKey}`, accPayload, { qos: 1, retain: true });
+        if (me.room) {
+          c.publish(`${TOPIC_PREFIX}/rooms/${norm(me.room)}/${uKey}`, roomPayload, { qos: 1, retain: true });
+        }
+      });
+    }
+
+    function subscribeToRoom(roomCode) {
+      const rKey = norm(roomCode);
+      if (!rKey) return;
+      if (subscribedRoom && subscribedRoom !== rKey) {
+        clients.forEach(c => {
+          if (c.connected) c.unsubscribe(`${TOPIC_PREFIX}/rooms/${subscribedRoom}/+`);
+        });
+      }
+      subscribedRoom = rKey;
+      clients.forEach(c => {
+        if (c.connected) c.subscribe(`${TOPIC_PREFIX}/rooms/${rKey}/+`, { qos: 1 });
+      });
+    }
+
+    //check cloud for existing account before creating
+    function fetchCloudAccount(uKey, timeoutMs = 1500) {
+      return new Promise((resolve) => {
+        const onlineClients = clients.filter(c => c.connected);
+        if (onlineClients.length === 0) return resolve(null);
+
+        let resolved = false;
+        const topic = `${TOPIC_PREFIX}/accounts/${uKey}`;
+
+        const handler = (t, payload) => {
+          if (t === topic && !resolved) {
+            try {
+              const data = JSON.parse(payload.toString());
+              resolved = true;
+              resolve(data);
+            } catch (_) {}
+          }
+        };
+
+        onlineClients.forEach(c => {
+          c.on('message', handler);
+          c.subscribe(topic, { qos: 1 });
+        });
+
+        setTimeout(() => {
+          onlineClients.forEach(c => c.removeListener?.('message', handler));
+          if (!resolved) resolve(null);
+        }, timeoutMs);
+      });
+    }
+
+    //verify credentials or register new user
+    window.submitAuth = async function() {
+      const rawUser = document.getElementById('authUser').value.trim();
+      const rawPass = document.getElementById('authPass').value.trim();
+      const rawRoom = document.getElementById('authRoom').value.trim();
+      const errEl = document.getElementById('authError');
+      const btn = document.getElementById('authSubmitBtn');
+
+      errEl.style.display = 'none';
+      const uKey = norm(rawUser);
+
+      if (!uKey || !rawPass) {
+        errEl.textContent = 'Enter both username and password.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Verifying...';
+      btn.disabled = true;
+
+      let existing = store.accounts[uKey];
+      const cloudAcc = await fetchCloudAccount(uKey);
+      if (cloudAcc && (!existing || (cloudAcc.updatedAt || 0) >= (existing.updatedAt || 0))) {
+        existing = cloudAcc;
+      }
+
+      btn.textContent = 'Continue';
+      btn.disabled = false;
+
+      if (existing) {
+        if (existing.pass !== rawPass) {
+          errEl.textContent = 'Account exists. Incorrect password.';
+          errEl.style.display = 'block';
+          return;
+        }
+        store.accounts[uKey] = {
+          username: existing.username || rawUser,
+          pass: existing.pass,
+          steps: Number(existing.steps || 0),
+          unmovedSec: Number(existing.unmovedSec || 0),
+          bedrotPts: Number(existing.bedrotPts || 0),
+          schedulePts: Number(existing.schedulePts || 0),
+          restrictedScreenSec: Number(existing.restrictedScreenSec || 0),
+          sleepHours: Number(existing.sleepHours || 0),
+          appPts: Number(existing.appPts || 0),
+          lastApp: existing.lastApp || '',
+          schedule: existing.schedule || { ...DEFAULT_SCHEDULE },
+          room: rawRoom || existing.room || '',
+          updatedAt: Date.now()
+        };
+        toast(`Signed in as ${store.accounts[uKey].username}`);
+      } else {
+        store.accounts[uKey] = {
+          username: rawUser,
+          pass: rawPass,
+          steps: 0,
+          unmovedSec: 0,
+          bedrotPts: 0,
+          schedulePts: 0,
+          restrictedScreenSec: 0,
+          sleepHours: 0,
+          appPts: 0,
+          lastApp: '',
+          schedule: { ...DEFAULT_SCHEDULE },
+          room: rawRoom || '',
+          updatedAt: Date.now()
+        };
+        toast(`Account created for ${rawUser}`);
+      }
+
+      store.currentUser = uKey;
+      prevScoreText = null;
+      prevUnmovedText = null;
+      prevStepsText = null;
+      saveStore();
+      document.getElementById('authModal').classList.add('hidden');
+
+      const me = getMe();
+      if (me.room) subscribeToRoom(me.room);
+      processUrlAppTrigger();
+      initBackgroundAppBridge();
+      publishMyState(me);
+      render();
+    };
+
+    window.openAccountSwitch = function() {
+      const me = getMe();
+      document.getElementById('authUser').value = me ? me.username : '';
+      document.getElementById('authPass').value = '';
+      document.getElementById('authRoom').value = me?.room || '';
+      document.getElementById('authError').style.display = 'none';
+      document.getElementById('authModal').classList.remove('hidden');
+    };
+
+    window.openRoomModal = function() {
+      const me = getMe();
+      document.getElementById('roomInput').value = me?.room || '';
+      document.getElementById('roomModal').classList.remove('hidden');
+    };
+
+    window.closeRoomModal = function() {
+      document.getElementById('roomModal').classList.add('hidden');
+    };
+
+    window.saveRoom = function() {
+      const code = document.getElementById('roomInput').value.trim();
+      const me = getMe();
+      if (!me || !code) return;
+
+      me.room = code;
+      subscribeToRoom(code);
+      publishMyState(me);
+      closeRoomModal();
+      render();
+      toast(`Connected to Room ${code}`);
+    };
+
+    //schedule modal handlers
+    window.openScheduleModal = function() {
+      const me = getMe();
+      const sched = { ...DEFAULT_SCHEDULE, ...(me?.schedule || {}) };
+      document.getElementById('workEnabledInput').checked = sched.workEnabled;
+      document.getElementById('workStartInput').value = sched.workStart;
+      document.getElementById('workEndInput').value = sched.workEnd;
+      document.getElementById('sleepEnabledInput').checked = sched.sleepEnabled;
+      document.getElementById('sleepStartInput').value = sched.sleepStart;
+      document.getElementById('sleepEndInput').value = sched.sleepEnd;
+      document.getElementById('scheduleModal').classList.remove('hidden');
+    };
+
+    window.closeScheduleModal = function() {
+      document.getElementById('scheduleModal').classList.add('hidden');
+    };
+
+    window.saveSchedule = function() {
+      const me = getMe();
+      if (!me) return;
+      me.schedule = {
+        workEnabled: document.getElementById('workEnabledInput').checked,
+        workStart: document.getElementById('workStartInput').value || '09:00',
+        workEnd: document.getElementById('workEndInput').value || '17:00',
+        sleepEnabled: document.getElementById('sleepEnabledInput').checked,
+        sleepStart: document.getElementById('sleepStartInput').value || '23:00',
+        sleepEnd: document.getElementById('sleepEndInput').value || '07:00'
+      };
+      publishMyState(me);
+      closeScheduleModal();
+      render();
+      toast('Protected hours saved');
+    };
+
+    window.toggleDemoSchedule = function() {
+      demoForceSchedule = !demoForceSchedule;
+      render();
+      toast(demoForceSchedule ? 'Work 10x window enabled' : 'Work 10x override off');
+    };
+
+    window.toggleDemoBedrot = function() {
+      demoForceBedrot = !demoForceBedrot;
+      render();
+      toast(demoForceBedrot ? 'Bedrot posture forced' : 'Bedrot posture off');
+    };
+
+    window.forceSyncRoom = function() {
+      const me = getMe();
+      if (!me) return;
+      if (me.room) subscribeToRoom(me.room);
+      publishMyState(me);
+      toast('Room synced');
+    };
+
+    window.adjustStat = function(field, delta) {
+      const me = getMe();
+      if (!me) return;
+      if (field === 'steps' && delta > 0) {
+        lastStepMs = Date.now();
+        currentStreakSec = 0;
+        sensorBedrotAngle = false;
+      }
+      me[field] = Math.max(0, Number((Number(me[field] || 0) + delta).toFixed(1)));
+      publishMyState(me);
+      render();
+    };
+
+    window.resetMyStats = function() {
+      const me = getMe();
+      if (!me) return;
+      me.steps = 0;
+      me.unmovedSec = 0;
+      me.bedrotPts = 0;
+      me.schedulePts = 0;
+      me.restrictedScreenSec = 0;
+      me.sleepHours = 0;
+      me.appPts = 0;
+      me.lastApp = '';
+      currentStreakSec = 0;
+      lastStepMs = 0;
+      publishMyState(me);
+      render();
+      toast('Metrics reset');
+    };
+
+    //high-pass gravity filter detects stillness, steps, and lying-down bedrot posture
+    function onDeviceMotion(e) {
+      const acc = e.accelerationIncludingGravity || e.acceleration;
+      if (!acc || acc.x === null) return;
+      sensorEventsSeen++;
+
+      if (!grav.init) {
+        grav.x = acc.x;
+        grav.y = acc.y;
+        grav.z = acc.z;
+        grav.init = true;
+        return;
+      }
+
+      const alpha = 0.9;
+      grav.x = alpha * grav.x + (1 - alpha) * acc.x;
+      grav.y = alpha * grav.y + (1 - alpha) * acc.y;
+      grav.z = alpha * grav.z + (1 - alpha) * acc.z;
+
+      const lx = acc.x - grav.x;
+      const ly = acc.y - grav.y;
+      const lz = acc.z - grav.z;
+      const linearMag = Math.hypot(lx, ly, lz);
+
+      isStill = linearMag < 0.45;
+
+      //detect lying-down angles: screen tilted overhead, side-lying, or flat on bed
+      const overheadBedrot = grav.z < -2.2;
+      const sideBedrot = Math.abs(grav.x) > 5.8 && Math.abs(grav.y) < 6.0;
+      const flatBedrot = Math.abs(grav.z) > 8.4 && Math.abs(grav.y) < 3.8;
+      sensorBedrotAngle = isStill && (overheadBedrot || sideBedrot || flatBedrot);
+
+      const now = Date.now();
+      if (linearMag > 1.45 && (now - lastStepMs) > 350) {
+        lastStepMs = now;
+        currentStreakSec = 0;
+        sensorBedrotAngle = false;
+        const me = getMe();
+        if (me) {
+          me.steps = Number(me.steps || 0) + 1;
+          publishMyState(me);
+          render();
+        }
+      }
+    }
+
+    //request motion sensor permission on user tap
+    window.requestSensorPermission = async function() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+          const res = await DeviceMotionEvent.requestPermission();
+          if (res === 'granted') {
+            window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+            toast('Motion sensors enabled');
+          } else {
+            toast('Sensor permission denied');
+          }
+        } catch (_) {}
+      } else {
+        window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+        toast('Sensors active');
+      }
+    };
+
+    window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+    window.addEventListener('pointerdown', () => {
+      if (sensorEventsSeen === 0 && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(res => {
+          if (res === 'granted') window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+        }).catch(() => {});
+      }
+    }, { once: true });
+
+    //2s demo tick pauses multipliers while stepping so walking lowers score
+    setInterval(() => {
+      const me = getMe();
+      if (!me) return;
+
+      const screenOn = document.visibilityState === 'visible';
+      const schedStatus = getScheduleStatus(me);
+      const stepping = isSteppingNow();
+      const multPaused = !isStill || stepping;
+      const is10x = screenOn && schedStatus.active && !multPaused;
+      const bedrot = isBedrotActive() && !multPaused;
+      let dirty = false;
+
+      if (screenOn && schedStatus.active) {
+        me.restrictedScreenSec = Number(me.restrictedScreenSec || 0) + 2;
+        dirty = true;
+      }
+
+      if (isStill && !stepping) {
+        currentStreakSec += 2;
+        me.unmovedSec = Number(me.unmovedSec || 0) + 2;
+        const baseTick = bedrot ? 100 : 10;
+        if (bedrot) {
+          me.bedrotPts = Number(me.bedrotPts || 0) + 90;
+        }
+        if (is10x) {
+          //add 9x extra on top of 1x base for full 10x rate
+          me.schedulePts = Number(me.schedulePts || 0) + baseTick * 9;
+        }
+        dirty = true;
+      } else {
+        currentStreakSec = 0;
+      }
+
+      if (screenOn && schedStatus.inWork && bedrot) {
+        navigator.vibrate?.([45, 50, 45]);
+      }
+
+      if (dirty) publishMyState(me);
+      render();
+    }, 2000);
+
+    //score app return session or offline lock-screen rot
+    document.addEventListener('visibilitychange', () => {
+      const me = getMe();
+      if (!me) return;
+      if (document.visibilityState === 'hidden') {
+        localStorage.setItem('mcp_hidden_ts', String(Date.now()));
+        publishMyState(me);
+      } else {
+        const activeRaw = localStorage.getItem('mcp_active_app');
+        localStorage.removeItem('mcp_active_app');
+        localStorage.removeItem('mcp_hidden_ts');
+
+        if (activeRaw) {
+          try {
+            const active = JSON.parse(activeRaw);
+            const rule = APP_RULES[active.key];
+            const elapsedSec = Math.min(3600, Math.max(0, Math.floor((Date.now() - active.ts) / 1000)));
+            if (rule && elapsedSec > 0) {
+              const mult = (getScheduleStatus(me).active && !isSteppingNow()) ? 10 : 1;
+              const timeDelta = Math.round(elapsedSec * rule.perSecPts * mult);
+              const totalDelta = (rule.openPts * mult) + timeDelta;
+              const sign = totalDelta >= 0 ? '+' : '';
+              me.appPts = Number(me.appPts || 0) + timeDelta;
+              me.lastApp = `${rule.label} (${sign}${totalDelta}${mult > 1 ? ' 10x' : ''})`;
+              publishMyState(me);
+              toast(`${rule.label} ${elapsedSec}s: ${timeDelta >= 0 ? '+' : ''}${timeDelta} pts`);
+              render();
+              return;
+            }
+          } catch (_) {}
+        }
+
+        const hiddenTs = Number(localStorage.getItem('mcp_hidden_ts') || 0);
+        if (hiddenTs > 0) {
+          const awaySec = Math.floor((Date.now() - hiddenTs) / 1000);
+          if (awaySec >= 60 && awaySec <= 57600) {
+            me.unmovedSec = Number(me.unmovedSec || 0) + awaySec;
+            me.sleepHours = Number((Number(me.sleepHours || 0) + awaySec / 3600).toFixed(2));
+            publishMyState(me);
+            toast(`Logged ${fmtMinSec(awaySec)} offline stillness`);
+            render();
+          }
+        }
+      }
+    });
+
+    function render() {
+      const me = getMe();
+      if (!me) {
+        document.getElementById('authModal').classList.remove('hidden');
+        return;
+      }
+
+      const schedStatus = getScheduleStatus(me);
+      const screenOn = document.visibilityState === 'visible';
+      const stepping = isSteppingNow();
+      const multPaused = !isStill || stepping;
+      const inProtectedNow = screenOn && schedStatus.active;
+      const is10x = inProtectedNow && !multPaused;
+      const bedrot = isBedrotActive() && !multPaused;
+      const isWorkWarning = screenOn && schedStatus.inWork;
+      const isBedrotInSchool = isWorkWarning && bedrot;
+
+      //toggle full-island shake when bedrotting during school/work hours
+      document.body.classList.toggle('bedrot-school-shake', isBedrotInSchool);
+
+      if (is10x && !wasWarningActive) {
+        navigator.vibrate?.([60, 40, 60]);
+      }
+      wasWarningActive = is10x;
+
+      const myScore = calcScore(me);
+      const appPts = Number(me.appPts || 0);
+      const scoreEl = document.getElementById('heroScore');
+      const unmovedEl = document.getElementById('statUnmoved');
+      const stepsEl = document.getElementById('statSteps');
+
+      const nextScoreText = myScore.toLocaleString();
+      const nextUnmovedText = fmtMinSec(me.unmovedSec);
+      const nextStepsText = me.steps.toLocaleString();
+
+      //shake counters whenever their displayed values change
+      if (prevScoreText !== null && prevScoreText !== nextScoreText) {
+        shakeCounter(scoreEl, 1.0);
+      }
+      if (prevUnmovedText !== null && prevUnmovedText !== nextUnmovedText) {
+        shakeCounter(unmovedEl, 0.55);
+      }
+      if (prevStepsText !== null && prevStepsText !== nextStepsText) {
+        shakeCounter(stepsEl, 0.75);
+      }
+
+      prevScoreText = nextScoreText;
+      prevUnmovedText = nextUnmovedText;
+      prevStepsText = nextStepsText;
+
+      document.getElementById('welcomeName').textContent = me.username;
+      document.getElementById('rankTitle').textContent = getRankTitle(myScore);
+      scoreEl.textContent = nextScoreText;
+      unmovedEl.textContent = nextUnmovedText;
+      document.getElementById('statStreak').textContent = `Streak ${fmtMinSec(currentStreakSec)}`;
+      stepsEl.textContent = nextStepsText;
+      document.getElementById('statSleep').textContent = `${Number(me.sleepHours || 0).toFixed(1)} hrs`;
+      document.getElementById('statAppPts').textContent = `${appPts >= 0 ? '+' : ''}${appPts.toLocaleString()} pts`;
+      document.getElementById('statLastApp').textContent = me.lastApp || 'No app logged';
+
+      //update screen time warning banner (red during school/work hours)
+      const warnBanner = document.getElementById('warningBanner');
+      const multBadge = document.getElementById('multBadge');
+      const warnMultTag = document.getElementById('warningMultTag');
+      if (inProtectedNow) {
+        warnBanner.classList.remove('hidden');
+        warnBanner.classList.toggle('work-alert', isWorkWarning);
+        multBadge.classList.remove('hidden');
+        if (multPaused) {
+          multBadge.className = 'mult-pill paused-mult';
+          multBadge.textContent = '10X PAUSED';
+          warnMultTag.textContent = 'PAUSED';
+          document.getElementById('warningTitle').textContent = `WARNING: ${schedStatus.reason}`;
+          document.getElementById('warningSub').textContent = `Multipliers paused while moving (${fmtMinSec(me.restrictedScreenSec)})`;
+        } else {
+          multBadge.className = isWorkWarning ? 'mult-pill work-mult' : 'mult-pill';
+          multBadge.textContent = '10X ACTIVE';
+          warnMultTag.textContent = '10X RATE';
+          document.getElementById('warningTitle').textContent = isBedrotInSchool
+            ? 'BEDROT IN SCHOOL/WORK HOURS'
+            : `WARNING: ${schedStatus.reason}`;
+          const rate = bedrot ? '+1,000 pts / 2s' : '+100 pts / 2s';
+          document.getElementById('warningSub').textContent = `Screen active • ${rate} (${fmtMinSec(me.restrictedScreenSec)})`;
+        }
+      } else {
+        warnBanner.classList.add('hidden');
+        warnBanner.classList.remove('work-alert');
+        multBadge.classList.add('hidden');
+      }
+
+      //update schedule chips
+      const s = schedStatus.sched;
+      const workChip = document.getElementById('workWindowChip');
+      const sleepChip = document.getElementById('sleepWindowChip');
+      workChip.textContent = s.workEnabled ? `Work ${s.workStart}-${s.workEnd}` : 'Work Off';
+      sleepChip.textContent = s.sleepEnabled ? `Sleep ${s.sleepStart}-${s.sleepEnd}` : 'Sleep Off';
+      workChip.className = schedStatus.inWork ? 'sched-chip active-work-window' : 'sched-chip';
+      sleepChip.className = schedStatus.inSleep ? 'sched-chip active-window' : 'sched-chip';
+      document.getElementById('restrictedScreenChip').textContent = `Screen ${fmtMinSec(me.restrictedScreenSec)}`;
+      document.getElementById('forceMultBtn').className = demoForceSchedule ? 'sim-chip active-sim' : 'sim-chip';
+      document.getElementById('forceBedrotBtn').className = demoForceBedrot ? 'sim-chip active-sim' : 'sim-chip';
+
+      //update app deltas to reflect 10x multiplier when active
+      const appMult = is10x ? 10 : 1;
+      document.getElementById('ytDelta').textContent = `+${150 * appMult} • +${12 * appMult}/s`;
+      document.getElementById('igDelta').textContent = `+${150 * appMult} • +${12 * appMult}/s`;
+      document.getElementById('pulseDelta').textContent = `-${200 * appMult} • -${15 * appMult}/s`;
+      document.getElementById('classDelta').textContent = `-${200 * appMult} • -${15 * appMult}/s`;
+
+      //update compact inline motion chip using original detection states
+      const chip = document.getElementById('motionChip');
+      const txt = document.getElementById('motionText');
+      const unmovedSub = document.getElementById('unmovedSub');
+      if (is10x && bedrot) {
+        chip.className = 'sensor-chip still';
+        txt.textContent = '10x Bedrot +1000/2s';
+        unmovedSub.textContent = 'Protected hours + bedrot';
+      } else if (is10x) {
+        chip.className = 'sensor-chip still';
+        txt.textContent = '10x Screen +100/2s';
+        unmovedSub.textContent = 'Screen active • 10x rate';
+      } else if (bedrot) {
+        chip.className = 'sensor-chip still';
+        txt.textContent = 'Bedrot +100/2s';
+        unmovedSub.textContent = 'Lying posture • 10x rate';
+      } else if (isStill && !stepping) {
+        chip.className = 'sensor-chip still';
+        txt.textContent = 'Still +10/2s';
+        unmovedSub.textContent = 'Live stillness counter';
+      } else {
+        chip.className = 'sensor-chip';
+        txt.textContent = 'Moving -8/step';
+        unmovedSub.textContent = 'Multipliers paused';
+      }
+
+      const rKey = norm(me.room);
+      document.getElementById('roomPillBtn').textContent = me.room ? `Room ${me.room}` : 'Room: Solo';
+      document.getElementById('roomCtaLabel').textContent = me.room ? `Room #${me.room}` : 'Join Room';
+      document.getElementById('boardHeading').textContent = me.room ? `Room #${me.room} Standings` : 'Personal Standings';
+
+      let members = [];
+      if (rKey && store.rooms[rKey]) {
+        store.rooms[rKey][norm(me.username)] = {
+          username: me.username,
+          steps: me.steps,
+          unmovedSec: me.unmovedSec,
+          bedrotPts: Number(me.bedrotPts || 0),
+          schedulePts: Number(me.schedulePts || 0),
+          sleepHours: me.sleepHours,
+          appPts: appPts,
+          lastApp: me.lastApp || '',
+          updatedAt: me.updatedAt || Date.now()
+        };
+        members = Object.values(store.rooms[rKey]);
+      } else {
+        members = [me];
+      }
+
+      const ranked = members.map(m => ({
+        ...m,
+        isMe: norm(m.username) === norm(me.username),
+        score: calcScore(m)
+      })).sort((a, b) => b.score - a.score);
+
+      document.getElementById('memberCount').textContent = `${ranked.length} ${ranked.length === 1 ? 'Participant' : 'Participants'}`;
+
+      document.getElementById('board').innerHTML = ranked.map((p, i) => `
+        <div class="leader-row liquid-glass ${i === 0 ? 'first' : ''} ${p.isMe ? 'me' : ''}">
+          <div class="rank-circle">${String(i + 1).padStart(2, '0')}</div>
+          <div class="leader-info">
+            <div class="leader-name-line">
+              <span class="leader-username">${p.username}</span>
+              ${i === 0 ? '<span class="mini-tag">Top Chud</span>' : ''}
+              ${p.isMe ? '<span class="mini-tag you">You</span>' : ''}
+            </div>
+            <div class="leader-sub">${fmtMinSec(p.unmovedSec)} still • ${p.steps} steps${p.lastApp ? ` • ${p.lastApp}` : ''}</div>
+          </div>
+          <div class="leader-pts">${p.score.toLocaleString()}</div>
+        </div>
+      `).join('');
+    }
+
+    initCloudSync();
+    const initialMe = getMe();
+    if (initialMe) {
+      if (initialMe.room) subscribeToRoom(initialMe.room);
+      processUrlAppTrigger();
+      initBackgroundAppBridge();
+    }
+    render();
+  </script>
+</body>
+</html>
